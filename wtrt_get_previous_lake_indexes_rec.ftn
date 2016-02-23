@@ -1,0 +1,66 @@
+      !Author: Oleksandr Huziy
+      !email: guziy.sasha@gmail.com
+      !Purpose: determine the indexes of the same lake that flow
+      !into the cell i0,j0
+      recursive subroutine wtrt_get_previous_lake_indexes_rec(n_indexes,
+     & i_array, j_array, directions, lake_fractions, i0,j0,
+     & imin, imax, jmin, jmax, ni, nj, glob_lake_fraction_limit)
+       implicit none
+       !--I--
+       integer ni,nj
+       integer i0, j0, imin, imax, jmin, jmax !defines region of interest inside the domain
+       integer directions(ni, nj)
+       real lake_fractions(ni, nj)
+       real glob_lake_fraction_limit
+
+       !--IO--
+       integer n_indexes, i_array((imax-imin) * (jmax-jmin)),
+     &                    j_array((imax-imin) * (jmax-jmin))
+
+       !--local--
+       integer di, dj
+       integer i, j, next_i, next_j
+
+
+
+       !return without changes if not in the region of interest
+       if ( i0 < imin .or. i0 > imax .or. j0 < jmin .or. j0 > jmax ) then
+        return
+       endif
+
+       n_indexes = n_indexes + 1
+       i_array(n_indexes) = i0
+       j_array(n_indexes) = j0
+
+
+       do di = -1,1
+        do dj = -1,1
+          if ((abs(di) + abs(dj)) .eq. 0) then
+            cycle
+          endif
+
+          i = i0 + di
+          j = j0 + dj
+
+          !check if the previous is a lake cell
+          if (lake_fractions(i,j) < glob_lake_fraction_limit) then
+            cycle
+          endif
+
+          call wtrt_direction_value_to_next_ij(directions(i,j), i, j,
+     &     next_i, next_j)
+
+          !skip if it does not flow into (i0, j0)
+          if ((next_i .ne. i0) .or. (next_j .ne. j0)) then
+            cycle
+          endif
+
+
+          !print*, "mounted upstream ", i, j
+          call wtrt_get_previous_lake_indexes_rec(n_indexes, i_array,
+     &     j_array, directions, lake_fractions, i,j, imin, imax,
+     &     jmin, jmax, ni, nj, glob_lake_fraction_limit)
+        enddo
+       enddo
+
+      end subroutine wtrt_get_previous_lake_indexes_rec

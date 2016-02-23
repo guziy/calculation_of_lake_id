@@ -1,0 +1,42 @@
+      subroutine wtrt_direction_value_to_next_ij(dirValue, iCurrent, jCurrent, iNext, jNext)
+      !Author: Huziy
+      !date: 19/08/2011
+      !Object: convert direction value to the next grid indices
+      !
+      !
+      !  The following values reesent the directions from the center
+      !     32  64  128
+      !     16        1
+      !      8   4    2
+      !  returns i_next = -1 and j_next = -1 if the dirValue is not from
+      !  the set 1,2,4,8,16,32,64,128.
+      !  iCurrent, jCurrent - indices of the current cell
+
+      implicit none
+
+      !----I------
+      integer dirValue, iCurrent, jCurrent
+      !----O------
+      integer iNext, jNext
+
+      integer, parameter :: nNeighbours = 8
+      integer iIncrements(nNeighbours)
+      integer jIncrements(nNeighbours)
+      integer values(nNeighbours)
+      integer k
+
+      values = (/1,2,4,8,16,32,64,128/)
+      iIncrements = (/1,1,0,-1,-1,-1,0,1/)
+      jIncrements = (/0,-1,-1,-1,0,1,1,1/)
+
+      iNext = -1
+      jNext = -1
+      do k = 1,nNeighbours
+        if (values(k) .eq. dirValue) then
+            iNext = iCurrent + iIncrements(k)
+            jNext = jCurrent + jIncrements(k)
+            return
+        endif
+      enddo
+
+      end subroutine wtrt_direction_value_to_next_ij
